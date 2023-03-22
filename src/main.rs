@@ -5,6 +5,7 @@ mod shelly_datapoint;
 mod sun_datapoints;
 
 use std::fmt::{Display};
+use std::process;
 use std::time::SystemTime;
 use chrono::DateTime;
 use influxdb::{Client, Timestamp};
@@ -86,7 +87,10 @@ async fn main() {
         let res = client.query(&points).await;
         match res {
             Ok(y) => log(format!("Successfully wrote {} Points: {}", &points.len(), y)),
-            Err(e) => log(format!("Error writing data to InfluxDB: {}", e)),
+            Err(e) => {
+                log(format!("Error writing data to InfluxDB: {}", e));
+                process::exit(1);
+            },
         }
         std::thread::sleep(std::time::Duration::from_secs(5));
     }
