@@ -6,10 +6,10 @@ mod sun_datapoints;
 
 use std::fmt::{Display};
 use std::process;
-use std::time::SystemTime;
+use std::time::{Duration, SystemTime};
 use chrono::DateTime;
-use influxdb::{Client, Timestamp};
-use influxdb::QueryType::WriteQuery;
+use influxdb::{Client};
+
 use crate::shelly_response::ShellyResponse;
 use influxdb::InfluxDbWriteable;
 
@@ -43,7 +43,9 @@ async fn main() {
         log("Sun tracking not enabled");
     }
 
-    let client = Client::new(influx_host, influx_db).with_auth(influx_username, influx_password);
+    let client = Client::new(influx_host, influx_db)
+        .with_auth(influx_username, influx_password)
+        .with_http_client(reqwest::ClientBuilder::new().timeout(Duration::from_secs(10)).build().unwrap());
     loop {
         let mut points = Vec::new();
         for ip in &shelly_ips
@@ -82,7 +84,6 @@ async fn main() {
                 let sun = SunDatapoint::new(latitude, longitude).into_query("sun_position");
                 points.push(sun);
             }
-
         }
         let res = client.query(&points).await;
         match res {
@@ -90,7 +91,7 @@ async fn main() {
             Err(e) => {
                 log(format!("Error writing data to InfluxDB: {}", e));
                 process::exit(1);
-            },
+            }
         }
         std::thread::sleep(std::time::Duration::from_secs(5));
     }

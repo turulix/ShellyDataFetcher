@@ -26,24 +26,22 @@ impl SunDatapoint {
         let rlon = long.to_radians() as f64;
 
         // Days from J2000, accurate from 1901 to 2099
-        let daynum = (367_f64 * year
+        let daynum = 367_f64 * year
             - 7_f64 * ((year + ((month + 9_f64) / 12_f64).floor()) / 4_f64).floor()
             + ((275_f64 * month) / 9_f64).floor()
             + day
             - 730531.5_f64
-            + greenwichtime / 24_f64
-        );
+            + greenwichtime / 24_f64;
 
         // Mean longitude of the Sun
         let mean_long = daynum * 0.01720279239_f64 + 4.894967873_f64;
         let mean_anom = daynum * 0.01720197034_f64 + 6.240040768_f64;
 
         // Ecliptic longitude of the sun
-        let eclip_long = (
+        let eclip_long =
             mean_long
                 + 0.03342305518 * f64::sin(mean_anom)
-                + 0.0003490658504 * f64::sin(2_f64 * mean_anom)
-        );
+                + 0.0003490658504 * f64::sin(2_f64 * mean_anom);
 
         let obliquity = 0.4090877234 - 0.000000006981317008 * daynum;
 
