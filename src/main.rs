@@ -43,14 +43,17 @@ async fn main() {
         log("Sun tracking not enabled");
     }
 
+    let http_client = reqwest::ClientBuilder::new().timeout(Duration::from_secs(10)).build().unwrap();
+
     let client = Client::new(influx_host, influx_db)
         .with_auth(influx_username, influx_password)
-        .with_http_client(reqwest::ClientBuilder::new().timeout(Duration::from_secs(10)).build().unwrap());
+        .with_http_client(http_client.clone());
+
     loop {
         let mut points = Vec::new();
         for ip in &shelly_ips
         {
-            let response = reqwest::get(format!("{}/status", ip)).await;
+            let response = http_client.get(format!("{}/status", ip)).send().await;
             let unwrapped_response: ShellyResponse = match response {
                 Ok(x) => match x.json().await {
                     Ok(y) => y,
